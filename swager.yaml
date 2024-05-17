@@ -13,10 +13,10 @@ definitions:
     properties:
       nome:
         type: 'string'
-        example: 'Alice Baldez'
+        example: 'Arthur Silva'
       cpf:
         type: 'string'
-        example: '548.190.280-06'
+        example: '459.033.140-31'
       votante:
         type: 'boolean'
         example: true
