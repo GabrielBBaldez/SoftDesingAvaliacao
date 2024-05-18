@@ -36,6 +36,11 @@ public class RegistroVotacaoController {
         return registroVotacaoService.buscarRegistrosVotacaoPorPauta(id);
     }
 
+    @GetMapping("/pauta-resultado/{idPauta}")
+    public ResponseEntity<?> resultadoVotacaoPauta(@PathVariable Long idPauta) {
+        return registroVotacaoService.contabilizarResultadoVotacao(idPauta);
+    }
+
     @GetMapping("/associado/{id}")
     public ResponseEntity<Iterable<RegistroVotacao>> buscarRegistrosVotacaoPorAssociado(@PathVariable Long id) {
         return registroVotacaoService.buscarRegistrosVotacaoPorAssociado(id);

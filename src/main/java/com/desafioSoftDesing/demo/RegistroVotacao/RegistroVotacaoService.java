@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @Service
 public class RegistroVotacaoService {
@@ -37,7 +40,7 @@ public class RegistroVotacaoService {
             Pauta pauta = pautaRepository.findById(dadosCadastroRegistroVotacao.pautaId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pauta não encontrada"));
 
-            if(!isAssociadoAtivo(associado.getId())) {
+            if (!isAssociadoAtivo(associado.getId())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Associado não está ativo");
             }
 
@@ -73,7 +76,7 @@ public class RegistroVotacaoService {
     public ResponseEntity<?> deletarRegistroVotacao(Long idPauta, Long idAssociado) {
         try {
             RegistroVotacao registroVotacao = registroVotacaoRepository.findByPautaIdAndAssociadoId(idPauta, idAssociado);
-            if (registroVotacao != null && isPautaVotacaoEmAndamento(registroVotacao.getPauta())){
+            if (registroVotacao != null && isPautaVotacaoEmAndamento(registroVotacao.getPauta())) {
                 registroVotacaoRepository.delete(registroVotacao);
                 return ResponseEntity.ok("Registro de votação deletado com sucesso.");
             } else {
@@ -81,6 +84,35 @@ public class RegistroVotacaoService {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar registro de votação: " + e.getMessage());
+        }
+    }
+
+    public ResponseEntity<?> contabilizarResultadoVotacao(Long idPauta) {
+        try {
+            Pauta pauta = pautaRepository.findById(idPauta)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pauta não encontrada"));
+
+            Iterable<RegistroVotacao> registrosVotacao = registroVotacaoRepository.findByPautaId(idPauta);
+
+            long votosPositivos = StreamSupport.stream(registrosVotacao.spliterator(), false)
+                    .filter(RegistroVotacao::getVoto)
+                    .count();
+
+            long votosNegativos = StreamSupport.stream(registrosVotacao.spliterator(), false)
+                    .filter(registroVotacao -> !registroVotacao.getVoto())
+                    .count();
+
+            long totalVotos = votosPositivos + votosNegativos;
+
+            Map<String, Object> resultado = new HashMap<>();
+            resultado.put("pauta", pauta);
+            resultado.put("votosPositivos", votosPositivos);
+            resultado.put("votosNegativos", votosNegativos);
+            resultado.put("totalVotos", totalVotos);
+
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao contabilizar resultado da votação: " + e.getMessage());
         }
     }
 
@@ -117,14 +149,14 @@ public class RegistroVotacaoService {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         String message;
 
-        if(LocalDate.now().isBefore(pauta.getVotacaoInicio())){
+        if (LocalDate.now().isBefore(pauta.getVotacaoInicio())) {
             message = String.format("Votação da pauta não começou, começará em: %s", pauta.getVotacaoInicio());
-        } else if(LocalDate.now().isAfter(pauta.getVotacaoFim())){
+        } else if (LocalDate.now().isAfter(pauta.getVotacaoFim())) {
             message = String.format("Votação da pauta já acabou, acabou em: %s", pauta.getVotacaoFim());
         } else {
             message = "Votação da pauta não está em andamento";
         }
 
-       return ResponseEntity.status(status).body(message);
+        return ResponseEntity.status(status).body(message);
     }
 }
