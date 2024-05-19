@@ -498,6 +498,30 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "ResultadoPauta",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://ec2-3-91-44-100.compute-1.amazonaws.com:8080/registro-votacao/pauta-resultado/4",
+							"protocol": "http",
+							"host": [
+								"ec2-3-91-44-100",
+								"compute-1",
+								"amazonaws",
+								"com"
+							],
+							"port": "8080",
+							"path": [
+								"registro-votacao",
+								"pauta-resultado",
+								"4"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
